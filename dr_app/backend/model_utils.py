@@ -17,7 +17,7 @@ import torch.nn.functional as F
 from torchvision import transforms
 from torchvision.models import efficientnet_b0
 from PIL import Image
-
+from pathlib import Path
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -27,7 +27,8 @@ IMG_SIZE = 224
 NUM_CLASSES = 5
 REFERABLE_THRESHOLD = 2
 
-CHECKPOINT_PATH = "best_model.pt"
+BASE_DIR = Path(__file__).resolve().parent
+CHECKPOINT_PATH = BASE_DIR / "best_model.pt"
 
 DEVICE = torch.device(
     "cuda" if torch.cuda.is_available() else "cpu"
