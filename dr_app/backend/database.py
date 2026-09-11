@@ -198,7 +198,15 @@ def insert_screening(record: dict) -> int:
 def get_screening(screening_id: int):
     with get_conn() as conn:
         row = conn.execute(
-            "SELECT * FROM screenings WHERE id = ?",
+            """
+            SELECT
+                s.*,
+                p.name AS patient_name
+            FROM screenings s
+            LEFT JOIN patients p
+                ON s.patient_id = p.patient_id
+            WHERE s.id = ?
+            """,
             (screening_id,)
         ).fetchone()
 
@@ -209,9 +217,13 @@ def list_screenings(limit: int = 100):
     with get_conn() as conn:
         rows = conn.execute(
             """
-            SELECT *
-            FROM screenings
-            ORDER BY created_at DESC
+            SELECT
+                s.*,
+                p.name AS patient_name
+            FROM screenings s
+            LEFT JOIN patients p
+                ON s.patient_id = p.patient_id
+            ORDER BY s.created_at DESC
             LIMIT ?
             """,
             (limit,)
