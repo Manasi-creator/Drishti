@@ -58,4 +58,16 @@ class ApiService {
 
     return data['screenings'] ?? [];
   }
+
+  static Future<Map<String, dynamic>> getScreening(int screeningId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/screening/$screeningId'),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load screening');
+    }
+
+    return jsonDecode(response.body);
+  }
 }

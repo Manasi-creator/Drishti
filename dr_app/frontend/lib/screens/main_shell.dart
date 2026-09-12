@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'dashboard/dashboard_screen.dart';
 import 'patients/patients_screen.dart';
+import 'reports/reports_screen.dart';
+import 'screening/screenings_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -36,27 +38,14 @@ class _MainShellState extends State<MainShell> {
         return const PatientsScreen();
 
       case 2:
-        return const Center(
-          child: Text(
-            'Screenings',
-            style: TextStyle(fontSize: 28),
-          ),
-        );
+        return const ScreeningsScreen();
 
       case 3:
-        return const Center(
-          child: Text(
-            'Reports',
-            style: TextStyle(fontSize: 28),
-          ),
-        );
+        return const ReportsScreen();
 
       case 4:
         return const Center(
-          child: Text(
-            'Settings',
-            style: TextStyle(fontSize: 28),
-          ),
+          child: Text('Settings', style: TextStyle(fontSize: 28)),
         );
 
       default:
@@ -70,9 +59,7 @@ class _MainShellState extends State<MainShell> {
       body: Row(
         children: [
           _buildSidebar(),
-          Expanded(
-            child: _buildContent(),
-          ),
+          Expanded(child: _buildContent()),
         ],
       ),
     );
@@ -109,37 +96,17 @@ class _MainShellState extends State<MainShell> {
 
           const SizedBox(height: 45),
 
-          _sidebarItem(
-            Icons.dashboard_outlined,
-            'Dashboard',
-            0,
-          ),
+          _sidebarItem(Icons.dashboard_outlined, 'Dashboard', 0),
 
-          _sidebarItem(
-            Icons.people_outline,
-            'Patients',
-            1,
-          ),
+          _sidebarItem(Icons.people_outline, 'Patients', 1),
 
-          _sidebarItem(
-            Icons.remove_red_eye_outlined,
-            'Screenings',
-            2,
-          ),
+          _sidebarItem(Icons.remove_red_eye_outlined, 'Screenings', 2),
 
-          _sidebarItem(
-            Icons.description_outlined,
-            'Reports',
-            3,
-          ),
+          _sidebarItem(Icons.description_outlined, 'Reports', 3),
 
           const Spacer(),
 
-          _sidebarItem(
-            Icons.settings_outlined,
-            'Settings',
-            4,
-          ),
+          _sidebarItem(Icons.settings_outlined, 'Settings', 4),
 
           const SizedBox(height: 20),
         ],
@@ -147,18 +114,11 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  Widget _sidebarItem(
-    IconData icon,
-    String title,
-    int index,
-  ) {
+  Widget _sidebarItem(IconData icon, String title, int index) {
     final selected = selectedIndex == index;
 
     return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 4,
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: selected
             ? Colors.white.withValues(alpha: 0.12)
@@ -166,16 +126,12 @@ class _MainShellState extends State<MainShell> {
         borderRadius: BorderRadius.circular(10),
       ),
       child: ListTile(
-        leading: Icon(
-          icon,
-          color: selected ? Colors.white : Colors.white70,
-        ),
+        leading: Icon(icon, color: selected ? Colors.white : Colors.white70),
         title: Text(
           title,
           style: TextStyle(
             color: selected ? Colors.white : Colors.white70,
-            fontWeight:
-                selected ? FontWeight.w600 : FontWeight.normal,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
         onTap: () => changePage(index),

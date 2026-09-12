@@ -406,14 +406,17 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                   DataCell(
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => ScreeningDetailScreen(
-                              screening: screening as Map<String, dynamic>,
-                              patientName: patientName,
+                        final screeningId = screening['id'];
+                        if (screeningId is int) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => ScreeningDetailScreen(
+                                screeningId: screeningId,
+                                patientName: patientName,
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        }
                       },
                       child: const Text('View Details'),
                     ),

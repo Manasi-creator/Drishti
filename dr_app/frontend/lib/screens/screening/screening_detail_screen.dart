@@ -3,16 +3,57 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../../core/api/api_constants.dart';
+import '../../services/api_service.dart';
+import '../patients/patient_profile_screen.dart';
 
-class ScreeningDetailScreen extends StatelessWidget {
+class ScreeningDetailScreen extends StatefulWidget {
   const ScreeningDetailScreen({
     super.key,
-    required this.screening,
-    required this.patientName,
+    required this.screeningId,
+    this.patientName,
   });
 
-  final Map<String, dynamic> screening;
-  final String patientName;
+  final int screeningId;
+  final String? patientName;
+
+  @override
+  State<ScreeningDetailScreen> createState() => _ScreeningDetailScreenState();
+}
+
+class _ScreeningDetailScreenState extends State<ScreeningDetailScreen> {
+  Map<String, dynamic>? _screening;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadScreening();
+  }
+
+  Future<void> _loadScreening() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final data = await ApiService.getScreening(widget.screeningId);
+      if (!mounted) return;
+
+      setState(() {
+        _screening = data;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        _error = 'Unable to load screening details.';
+        _loading = false;
+      });
+    }
+  }
 
   String _safeText(dynamic value) {
     final text = value?.toString().trim();
@@ -75,17 +116,53 @@ class ScreeningDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (_error != null || _screening == null) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF5F7FA),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _error ?? 'Unable to load screening details.',
+                style: const TextStyle(color: Colors.grey, fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _loadScreening,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final screening = _screening!;
+    final patientId = _safeText(screening['patient_id']);
+    final patientName =
+        widget.patientName ?? _safeText(screening['patient_name']);
     final screeningId = screening['id']?.toString() ?? '--';
     final quality =
         screening['quality_acceptable'] == 1 ||
             screening['quality_acceptable'] == true
-        ? 'Pass'
-        : 'Review';
+        ? 'Acceptable'
+        : 'Poor';
+    final qualityReason = _safeText(screening['quality_reason']);
     final grade = _safeText(screening['dr_grade_label']);
     final confidence = _formatConfidence(screening['confidence']);
     final referable =
         screening['referable'] == 1 || screening['referable'] == true;
     final heatmapFile = _safeText(screening['heatmap_filename']);
+    final imageFile = _safeText(screening['stored_filename']);
+    final originalImageUrl = imageFile == '--'
+        ? null
+        : '${ApiConstants.baseUrl}/uploads/$imageFile';
     final heatmapUrl = heatmapFile == '--'
         ? null
         : '${ApiConstants.baseUrl}/heatmaps/$heatmapFile';
@@ -100,7 +177,7 @@ class ScreeningDetailScreen extends StatelessWidget {
           probabilities[label] ??
           probabilities[label.replaceFirst('L', '')] ??
           0;
-      final pct = (value is num) ? (value * 100) : 0.0;
+      final pct = (value is num) ? (value * 100.0) : 0.0;
       return MapEntry(label, pct);
     }).toList();
 
@@ -120,7 +197,7 @@ class ScreeningDetailScreen extends StatelessWidget {
                 icon: const Icon(Icons.arrow_back_rounded),
               ),
               const SizedBox(width: 6),
-              const Text('Screening Result'),
+              const Text('Back to Screenings'),
             ],
           ),
         ),
@@ -131,49 +208,191 @@ class ScreeningDetailScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'SCREENING RESULT',
-                style: TextStyle(
+              Text(
+                'Screening #$screeningId',
+                style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF17202A),
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Text(
+                    'Patient: ',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  if (patientId != '--')
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                PatientProfileScreen(patientId: patientId),
+                          ),
+                        );
+                      },
+                      child: Text(patientName),
+                    )
+                  else
+                    Text(patientName),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Patient ID: $patientId',
+                style: const TextStyle(color: Colors.grey, fontSize: 15),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Date: ${_formatDateTime(screening['created_at']?.toString())}',
+                style: const TextStyle(color: Colors.grey, fontSize: 15),
+              ),
+              const SizedBox(height: 24),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: const Color(0xFFE5E7EB)),
                 ),
-                child: Wrap(
-                  spacing: 28,
-                  runSpacing: 20,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _detailItem('Screening ID', screeningId),
-                    _detailItem(
-                      'Date',
-                      _formatDateTime(screening['created_at']?.toString()),
+                    const Text(
+                      'AI Screening Result',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    _detailItem('Patient', patientName),
-                    _detailItem('Image quality', quality),
-                    _detailItem('DR Grade', grade),
-                    _detailItem('Confidence', confidence),
-                    _detailItem(
-                      'Referral status',
-                      referable ? 'Referable' : 'Non-referable',
+                    const SizedBox(height: 18),
+                    Wrap(
+                      spacing: 30,
+                      runSpacing: 12,
+                      children: [
+                        _resultValue('DR Grade', grade),
+                        _resultValue('Confidence', confidence),
+                        _resultValue(
+                          'Referral Status',
+                          referable ? 'REFERABLE' : 'NON-REFERABLE',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    const Text(
+                      'AI-assisted screening — requires clinician review.',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF123B4A),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'This system is intended to support screening workflows and does not replace professional ophthalmic evaluation.',
+                      style: TextStyle(color: Color(0xFF45606D)),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.info_outline,
+                            color: Color(0xFF176B87),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              referable
+                                  ? 'AI screening indicates a referable result.'
+                                  : 'AI screening indicates a non-referable result.',
+                              style: const TextStyle(color: Color(0xFF17202A)),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 28),
               const Text(
+                'Image Quality',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Image Quality: $quality',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Reason: $qualityReason',
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 28),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final stacked = constraints.maxWidth < 1000;
+                  return Flex(
+                    direction: stacked ? Axis.vertical : Axis.horizontal,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _imagePanel(
+                          'Original Fundus Image',
+                          originalImageUrl,
+                          'Fundus image unavailable.',
+                        ),
+                      ),
+                      const SizedBox(width: 20, height: 20),
+                      Expanded(
+                        child: _imagePanel(
+                          'AI Attention Map',
+                          heatmapUrl,
+                          'Attention map unavailable for this screening.',
+                          description:
+                              'Highlights image regions that contributed most to the model\'s prediction.',
+                          secondaryDescription:
+                              'This visualization supports clinician review and is not a definitive lesion map.',
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 28),
+              const Text(
                 'CLASS PROBABILITIES',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               if (probabilityEntries.every((entry) => entry.value == 0.0))
                 Container(
                   width: double.infinity,
@@ -181,10 +400,10 @@ class ScreeningDetailScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Color(0xFFE5E7EB)),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
                   ),
                   child: const Text(
-                    'Class probabilities unavailable for this screening.',
+                    'Class probability details unavailable.',
                     style: TextStyle(color: Colors.grey),
                   ),
                 )
@@ -205,7 +424,10 @@ class ScreeningDetailScreen extends StatelessWidget {
                         margin: const EdgeInsets.symmetric(vertical: 6),
                         child: Row(
                           children: [
-                            SizedBox(width: 120, child: Text('$label  ')),
+                            SizedBox(
+                              width: 118,
+                              child: Text('$label — ${labelToName(label)}'),
+                            ),
                             Expanded(
                               child: LinearProgressIndicator(
                                 value: (value / 100).clamp(0.0, 1.0),
@@ -230,84 +452,6 @@ class ScreeningDetailScreen extends StatelessWidget {
                     }).toList(),
                   ),
                 ),
-              const SizedBox(height: 28),
-              const Text(
-                'AI Attention Map',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                "Highlights image regions that contributed to the model's prediction. This visualization supports clinician review and is not a definitive lesion map.",
-                style: TextStyle(color: Colors.grey, fontSize: 14),
-              ),
-              const SizedBox(height: 16),
-              if (heatmapUrl == null)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFE5E7EB)),
-                  ),
-                  child: const Text(
-                    'Attention map unavailable for this screening.',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                )
-              else
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFE5E7EB)),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      heatmapUrl,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Padding(
-                          padding: EdgeInsets.all(24),
-                          child: Text(
-                            'Attention map unavailable for this screening.',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 28),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F7F9),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFD9E7EA)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'AI-assisted screening — requires clinician review.',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF123B4A),
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'This system is intended to support screening workflows and does not replace professional ophthalmic evaluation.',
-                      style: TextStyle(color: Color(0xFF45606D)),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
@@ -315,24 +459,110 @@ class ScreeningDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _detailItem(String label, String value) {
+  String labelToName(String label) {
+    switch (label) {
+      case 'L0':
+        return 'No DR';
+      case 'L1':
+        return 'Mild';
+      case 'L2':
+        return 'Moderate';
+      case 'L3':
+        return 'Severe';
+      case 'L4':
+        return 'Proliferative DR';
+      default:
+        return '';
+    }
+  }
+
+  Widget _resultValue(String label, String value) {
     return SizedBox(
-      width: 190,
+      width: 220,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _imagePanel(
+    String title,
+    String? imageUrl,
+    String fallbackText, {
+    String? description,
+    String? secondaryDescription,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Colors.grey,
-              fontWeight: FontWeight.w600,
-            ),
+            title,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          if (description != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              description,
+              style: const TextStyle(color: Colors.grey, fontSize: 13),
+            ),
+          ],
+          if (secondaryDescription != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              secondaryDescription,
+              style: const TextStyle(color: Colors.grey, fontSize: 13),
+            ),
+          ],
+          const SizedBox(height: 16),
+          Container(
+            constraints: const BoxConstraints(minHeight: 260),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            child: imageUrl == null
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        fallbackText,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  )
+                : ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Text(
+                            'Image unavailable.',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
