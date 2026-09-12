@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+
 import 'core/theme/app_theme.dart';
 import 'screens/main_shell.dart';
+import 'services/settings_service.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SettingsService.instance.init();
   runApp(const DrishtiApp());
 }
 
@@ -11,10 +15,14 @@ class DrishtiApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = SettingsService.instance.themeMode;
+    final baseTheme = AppTheme.lightTheme;
     return MaterialApp(
       title: 'Drishti',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.theme,
+      theme: baseTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeMode,
       home: const MainShell(),
     );
   }

@@ -120,11 +120,15 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
 
     if (lower.contains('l0') || lower.contains('no dr')) return 'L0 — No DR';
     if (lower.contains('l1') || lower.contains('mild')) return 'L1 — Mild';
-    if (lower.contains('l2') || lower.contains('moderate'))
+    if (lower.contains('l2') || lower.contains('moderate')) {
       return 'L2 — Moderate';
-    if (lower.contains('l3') || lower.contains('severe')) return 'L3 — Severe';
-    if (lower.contains('l4') || lower.contains('proliferative'))
+    }
+    if (lower.contains('l3') || lower.contains('severe')) {
+      return 'L3 — Severe';
+    }
+    if (lower.contains('l4') || lower.contains('proliferative')) {
       return 'L4 — Proliferative DR';
+    }
     return grade.isEmpty ? 'Unspecified' : grade;
   }
 

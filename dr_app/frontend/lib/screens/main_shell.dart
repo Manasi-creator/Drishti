@@ -4,6 +4,7 @@ import 'dashboard/dashboard_screen.dart';
 import 'patients/patients_screen.dart';
 import 'reports/reports_screen.dart';
 import 'screening/screenings_screen.dart';
+import 'settings/settings_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -44,9 +45,7 @@ class _MainShellState extends State<MainShell> {
         return const ReportsScreen();
 
       case 4:
-        return const Center(
-          child: Text('Settings', style: TextStyle(fontSize: 28)),
-        );
+        return const SettingsScreen();
 
       default:
         return const DashboardScreen();
