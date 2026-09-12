@@ -31,11 +31,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     try {
-      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/health'));
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/health'),
+      );
       final connected = response.statusCode == 200;
       setState(() {
         _backendConnected = connected;
-        _backendStatus = connected ? 'Connected to Drishti Backend' : 'Backend unavailable';
+        _backendStatus = connected
+            ? 'Connected to Drishti Backend'
+            : 'Backend unavailable';
       });
     } catch (_) {
       setState(() {
@@ -119,9 +123,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       trailing: DropdownButton<String>(
                         value: settings.theme,
                         items: const [
-                          DropdownMenuItem(value: 'Light', child: Text('Light')),
+                          DropdownMenuItem(
+                            value: 'Light',
+                            child: Text('Light'),
+                          ),
                           DropdownMenuItem(value: 'Dark', child: Text('Dark')),
-                          DropdownMenuItem(value: 'System', child: Text('System')),
+                          DropdownMenuItem(
+                            value: 'System',
+                            child: Text('System'),
+                          ),
                         ],
                         onChanged: (value) async {
                           if (value == null) return;
@@ -132,7 +142,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     _buildSwitchRow(
                       label: 'Compact Interface',
-                      description: 'Use a tighter desktop layout for relevant views.',
+                      description:
+                          'Use a tighter desktop layout for relevant views.',
                       value: settings.compactInterface,
                       onChanged: (value) async {
                         await _settings.setCompactInterface(value);
@@ -146,15 +157,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     _buildSettingRow(
                       label: 'Application referral threshold',
-                      description: 'Screenings at or above this configured grade are marked as referable.',
+                      description:
+                          'Screenings at or above this configured grade are marked as referable.',
                       trailing: DropdownButton<String>(
                         value: settings.referralThreshold,
                         items: const [
-                          DropdownMenuItem(value: 'L0', child: Text('L0 — No DR')),
-                          DropdownMenuItem(value: 'L1', child: Text('L1 — Mild')),
-                          DropdownMenuItem(value: 'L2', child: Text('L2 — Moderate')),
-                          DropdownMenuItem(value: 'L3', child: Text('L3 — Severe')),
-                          DropdownMenuItem(value: 'L4', child: Text('L4 — Proliferative DR')),
+                          DropdownMenuItem(
+                            value: 'L0',
+                            child: Text('L0 — No DR'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'L1',
+                            child: Text('L1 — Mild'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'L2',
+                            child: Text('L2 — Moderate'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'L3',
+                            child: Text('L3 — Severe'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'L4',
+                            child: Text('L4 — Proliferative DR'),
+                          ),
                         ],
                         onChanged: (value) async {
                           if (value == null) return;
@@ -165,7 +192,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     _buildSwitchRow(
                       label: 'Show AI Confidence',
-                      description: 'Display model confidence alongside screening results.',
+                      description:
+                          'Display model confidence alongside screening results.',
                       value: settings.showConfidence,
                       onChanged: (value) async {
                         await _settings.setShowConfidence(value);
@@ -174,7 +202,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     _buildSwitchRow(
                       label: 'Show AI Attention Map',
-                      description: 'Display the model attention visualization when available.',
+                      description:
+                          'Display the model attention visualization when available.',
                       value: settings.showAttentionMap,
                       onChanged: (value) async {
                         await _settings.setShowAttentionMap(value);
@@ -183,7 +212,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     _buildSwitchRow(
                       label: 'Image Quality Check',
-                      description: 'Perform image quality screening before AI analysis.',
+                      description:
+                          'Perform image quality screening before AI analysis.',
                       value: settings.imageQualityCheck,
                       onChanged: (value) async {
                         await _settings.setImageQualityCheck(value);
@@ -202,7 +232,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         value: settings.reportFormat,
                         items: const [
                           DropdownMenuItem(value: 'A4', child: Text('A4')),
-                          DropdownMenuItem(value: 'Letter', child: Text('Letter')),
+                          DropdownMenuItem(
+                            value: 'Letter',
+                            child: Text('Letter'),
+                          ),
                         ],
                         onChanged: (value) async {
                           if (value == null) return;
@@ -213,7 +246,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     _buildSwitchRow(
                       label: 'Include Fundus Image',
-                      description: 'Include retinal fundus images in exported PDFs.',
+                      description:
+                          'Include retinal fundus images in exported PDFs.',
                       value: settings.includeFundusImage,
                       onChanged: (value) async {
                         await _settings.setIncludeFundusImage(value);
@@ -222,7 +256,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     _buildSwitchRow(
                       label: 'Include AI Attention Map',
-                      description: 'Include the attention map visualization in exported PDFs.',
+                      description:
+                          'Include the attention map visualization in exported PDFs.',
                       value: settings.includeAttentionMap,
                       onChanged: (value) async {
                         await _settings.setIncludeAttentionMap(value);
@@ -231,7 +266,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     _buildSwitchRow(
                       label: 'Include Class Probabilities',
-                      description: 'Include class probability breakdowns in report exports.',
+                      description:
+                          'Include class probability breakdowns in report exports.',
                       value: settings.includeClassProbabilities,
                       onChanged: (value) async {
                         await _settings.setIncludeClassProbabilities(value);
@@ -240,7 +276,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     _buildSettingRow(
                       label: 'Include Clinical Disclaimer',
-                      description: 'Required for safe presentation of AI-assisted screening results.',
+                      description:
+                          'Required for safe presentation of AI-assisted screening results.',
                       trailing: const Text('Always On'),
                     ),
                   ],
@@ -250,7 +287,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     _buildSwitchRow(
                       label: 'Report Review Reminder',
-                      description: 'Notify the clinician when a screening report requires review.',
+                      description:
+                          'Notify the clinician when a screening report requires review.',
                       value: settings.reportReviewReminder,
                       onChanged: (value) async {
                         await _settings.setReportReviewReminder(value);
@@ -259,7 +297,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     _buildSwitchRow(
                       label: 'Referable Screening Alert',
-                      description: 'Highlight referable screening results in the application.',
+                      description:
+                          'Highlight referable screening results in the application.',
                       value: settings.referableScreeningAlert,
                       onChanged: (value) async {
                         await _settings.setReferableScreeningAlert(value);
@@ -292,7 +331,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _buildActionRow(
                       label: 'Local Database',
                       value: 'SQLite',
-                      description: 'Drishti currently uses a local SQLite database for the development environment.',
+                      description:
+                          'Drishti currently uses a local SQLite database for the development environment.',
                       onPressed: _checkBackendHealth,
                       buttonLabel: 'Refresh Connection',
                     ),
@@ -309,17 +349,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildSection(
                   title: 'Security & Session',
                   children: [
-                    _buildInfoRow(
-                      label: 'Session',
-                      value: 'Active',
-                    ),
-                    _buildInfoRow(
-                      label: 'API Endpoint',
-                      value: _apiUrl,
-                    ),
+                    _buildInfoRow(label: 'Session', value: 'Active'),
+                    _buildInfoRow(label: 'API Endpoint', value: _apiUrl),
                     _buildInfoRow(
                       label: 'Authentication',
-                      value: 'Authentication is not configured in the current MVP.',
+                      value:
+                          'Authentication is not configured in the current MVP.',
                     ),
                   ],
                 ),
@@ -334,7 +369,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _buildInfoRow(label: 'AI Model', value: 'EfficientNet-B0'),
                     _buildInfoRow(label: 'Input Size', value: '224 × 224'),
                     _buildInfoRow(label: 'DR Classes', value: '5'),
-                    _buildInfoRow(label: 'Classes', value: 'L0 — No DR • L1 — Mild • L2 — Moderate • L3 — Severe • L4 — Proliferative DR'),
+                    _buildInfoRow(
+                      label: 'Classes',
+                      value:
+                          'L0 — No DR • L1 — Mild • L2 — Moderate • L3 — Severe • L4 — Proliferative DR',
+                    ),
                   ],
                 ),
                 Container(
@@ -364,7 +403,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const SizedBox(height: 12),
                       const Text(
                         'AI-assisted screening results are intended to support clinician review and do not constitute a definitive diagnosis.',
-                        style: TextStyle(fontSize: 13, height: 1.5, color: Color(0xFF374151)),
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.5,
+                          color: Color(0xFF374151),
+                        ),
                       ),
                     ],
                   ),
@@ -568,7 +611,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Text(
                   value,
-                  style: const TextStyle(fontSize: 14, color: Color(0xFF374151)),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF374151),
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -578,10 +624,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
-          OutlinedButton(
-            onPressed: onPressed,
-            child: Text(buttonLabel),
-          ),
+          OutlinedButton(onPressed: onPressed, child: Text(buttonLabel)),
         ],
       ),
     );

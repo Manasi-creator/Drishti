@@ -145,7 +145,8 @@ class AppSettings {
       referableScreeningAlert: map['referableScreeningAlert'] is bool
           ? map['referableScreeningAlert'] as bool
           : true,
-      referralThreshold: ['L0', 'L1', 'L2', 'L3', 'L4'].contains(referralThreshold)
+      referralThreshold:
+          ['L0', 'L1', 'L2', 'L3', 'L4'].contains(referralThreshold)
           ? referralThreshold
           : 'L2',
     );
@@ -189,9 +190,7 @@ class SettingsService extends ChangeNotifier {
     }
 
     try {
-      final decoded = Map<String, dynamic>.from(
-        _decodeJson(rawConfig),
-      );
+      final decoded = Map<String, dynamic>.from(_decodeJson(rawConfig));
       _settings = AppSettings.fromJson(decoded);
     } catch (_) {
       _settings = AppSettings.defaults();
@@ -226,12 +225,12 @@ class SettingsService extends ChangeNotifier {
   }
 
   AppReportSettings get reportSettings => AppReportSettings(
-        pageFormat: _settings.reportFormat,
-        includeFundusImage: _settings.includeFundusImage,
-        includeAttentionMap: _settings.includeAttentionMap,
-        includeClassProbabilities: _settings.includeClassProbabilities,
-        includeClinicalDisclaimer: _settings.includeClinicalDisclaimer,
-      );
+    pageFormat: _settings.reportFormat,
+    includeFundusImage: _settings.includeFundusImage,
+    includeAttentionMap: _settings.includeAttentionMap,
+    includeClassProbabilities: _settings.includeClassProbabilities,
+    includeClinicalDisclaimer: _settings.includeClinicalDisclaimer,
+  );
 
   bool get showConfidence => _settings.showConfidence;
   bool get showAttentionMap => _settings.showAttentionMap;
