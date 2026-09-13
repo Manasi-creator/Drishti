@@ -40,6 +40,27 @@ def init_db():
             )
         """)
 
+        doctor_columns = {
+            "phone": "TEXT",
+            "date_of_birth": "TEXT",
+            "gender": "TEXT",
+            "medical_registration_number": "TEXT",
+            "specialization": "TEXT",
+            "qualification": "TEXT",
+            "years_of_experience": "INTEGER",
+            "hospital_clinic": "TEXT",
+        }
+
+        existing_columns = {
+            row[1]
+            for row in conn.execute("PRAGMA table_info(doctors)").fetchall()
+        }
+        for column_name, column_type in doctor_columns.items():
+            if column_name not in existing_columns:
+                conn.execute(
+                    f"ALTER TABLE doctors ADD COLUMN {column_name} {column_type}"
+                )
+
         # Patients
         conn.execute("""
             CREATE TABLE IF NOT EXISTS patients (
@@ -84,29 +105,83 @@ def seed_default_doctors():
             "name": "Dr. Ananya Sharma",
             "email": "ananya.sharma@drishti.local",
             "password": "Drishti@123",
+            "phone": "+91 98765 43210",
+            "date_of_birth": "1988-03-14",
+            "gender": "Female",
+            "medical_registration_number": "MCI-AN-001",
+            "specialization": "Retina",
+            "qualification": "MBBS, MS (Ophthalmology)",
+            "years_of_experience": 8,
+            "hospital_clinic": "Drishti Eye Centre",
         },
         {
             "doctor_id": "DOC-002",
             "name": "Dr. Rohan Mehta",
             "email": "rohan.mehta@drishti.local",
             "password": "Drishti@123",
+            "phone": "+91 98123 45678",
+            "date_of_birth": "1984-11-07",
+            "gender": "Male",
+            "medical_registration_number": "MCI-RM-002",
+            "specialization": "General Ophthalmology",
+            "qualification": "MBBS, DOMS",
+            "years_of_experience": 12,
+            "hospital_clinic": "Mehta Vision Clinic",
         },
         {
             "doctor_id": "DOC-003",
             "name": "Dr. Priya Kulkarni",
             "email": "priya.kulkarni@drishti.local",
             "password": "Drishti@123",
+            "phone": "+91 99887 66554",
+            "date_of_birth": "1990-06-19",
+            "gender": "Female",
+            "medical_registration_number": "MCI-PK-003",
+            "specialization": "Retinal Imaging",
+            "qualification": "MBBS, DNB (Ophthalmology)",
+            "years_of_experience": 6,
+            "hospital_clinic": "Kulkarni Eye Hospital",
         },
     ]
 
     for doctor in default_doctors:
         with get_conn() as conn:
             existing = conn.execute(
-                "SELECT id FROM doctors WHERE doctor_id = ? OR email = ?",
+                "SELECT * FROM doctors WHERE doctor_id = ? OR email = ?",
                 (doctor["doctor_id"], doctor["email"]),
             ).fetchone()
 
             if existing is not None:
+                conn.execute(
+                    """
+                    UPDATE doctors
+                    SET name = ?,
+                        email = ?,
+                        phone = COALESCE(NULLIF(phone, ''), ?),
+                        date_of_birth = COALESCE(NULLIF(date_of_birth, ''), ?),
+                        gender = COALESCE(NULLIF(gender, ''), ?),
+                        medical_registration_number = COALESCE(NULLIF(medical_registration_number, ''), ?),
+                        specialization = COALESCE(NULLIF(specialization, ''), ?),
+                        qualification = COALESCE(NULLIF(qualification, ''), ?),
+                        years_of_experience = COALESCE(years_of_experience, ?),
+                        hospital_clinic = COALESCE(NULLIF(hospital_clinic, ''), ?)
+                    WHERE doctor_id = ?
+                    """,
+                    (
+                        doctor["name"],
+                        doctor["email"],
+                        doctor["phone"],
+                        doctor["date_of_birth"],
+                        doctor["gender"],
+                        doctor["medical_registration_number"],
+                        doctor["specialization"],
+                        doctor["qualification"],
+                        doctor["years_of_experience"],
+                        doctor["hospital_clinic"],
+                        doctor["doctor_id"],
+                    ),
+                )
+                conn.commit()
                 continue
 
             conn.execute(
@@ -118,8 +193,16 @@ def seed_default_doctors():
                     password_hash,
                     role,
                     is_active,
-                    created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    created_at,
+                    phone,
+                    date_of_birth,
+                    gender,
+                    medical_registration_number,
+                    specialization,
+                    qualification,
+                    years_of_experience,
+                    hospital_clinic
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     doctor["doctor_id"],
@@ -129,6 +212,14 @@ def seed_default_doctors():
                     "doctor",
                     1,
                     datetime.now(timezone.utc).isoformat(),
+                    doctor["phone"],
+                    doctor["date_of_birth"],
+                    doctor["gender"],
+                    doctor["medical_registration_number"],
+                    doctor["specialization"],
+                    doctor["qualification"],
+                    doctor["years_of_experience"],
+                    doctor["hospital_clinic"],
                 ),
             )
             conn.commit()
@@ -155,6 +246,43 @@ def get_doctor_by_identifier(identifier: str):
             (identifier, identifier),
         ).fetchone()
         return dict(row) if row else None
+
+
+def update_doctor_profile(doctor_id: str, updates: dict):
+    if not updates:
+        return get_doctor_by_id(doctor_id)
+
+    allowed_fields = {
+        "name",
+        "email",
+        "phone",
+        "date_of_birth",
+        "gender",
+        "medical_registration_number",
+        "specialization",
+        "qualification",
+        "years_of_experience",
+        "hospital_clinic",
+    }
+
+    sanitized_updates = {
+        key: value for key, value in updates.items() if key in allowed_fields
+    }
+
+    if not sanitized_updates:
+        return get_doctor_by_id(doctor_id)
+
+    assignments = ", ".join(f"{field} = ?" for field in sanitized_updates)
+    values = list(sanitized_updates.values()) + [doctor_id]
+
+    with get_conn() as conn:
+        conn.execute(
+            f"UPDATE doctors SET {assignments} WHERE doctor_id = ?",
+            tuple(values),
+        )
+        conn.commit()
+
+    return get_doctor_by_id(doctor_id)
 
 
 # ---------------------------------------------------------------------------

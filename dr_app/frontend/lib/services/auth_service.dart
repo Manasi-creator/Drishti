@@ -11,12 +11,32 @@ class DrishtiDoctor {
     required this.name,
     required this.email,
     required this.role,
+    this.phone = '',
+    this.dateOfBirth = '',
+    this.gender = '',
+    this.medicalRegistrationNumber = '',
+    this.specialization = '',
+    this.qualification = '',
+    this.yearsOfExperience = 0,
+    this.hospitalClinic = '',
+    this.isActive = true,
+    this.createdAt = '',
   });
 
   final String doctorId;
   final String name;
   final String email;
   final String role;
+  final String phone;
+  final String dateOfBirth;
+  final String gender;
+  final String medicalRegistrationNumber;
+  final String specialization;
+  final String qualification;
+  final int yearsOfExperience;
+  final String hospitalClinic;
+  final bool isActive;
+  final String createdAt;
 
   factory DrishtiDoctor.fromJson(Map<String, dynamic> json) {
     return DrishtiDoctor(
@@ -24,6 +44,50 @@ class DrishtiDoctor {
       name: (json['name'] ?? '').toString(),
       email: (json['email'] ?? '').toString(),
       role: (json['role'] ?? 'doctor').toString(),
+      phone: (json['phone'] ?? '').toString(),
+      dateOfBirth: (json['date_of_birth'] ?? json['dateOfBirth'] ?? '').toString(),
+      gender: (json['gender'] ?? '').toString(),
+      medicalRegistrationNumber: (json['medical_registration_number'] ?? '').toString(),
+      specialization: (json['specialization'] ?? '').toString(),
+      qualification: (json['qualification'] ?? '').toString(),
+      yearsOfExperience: int.tryParse((json['years_of_experience'] ?? json['yearsOfExperience'] ?? '0').toString()) ?? 0,
+      hospitalClinic: (json['hospital_clinic'] ?? json['hospitalClinic'] ?? '').toString(),
+      isActive: json['is_active'] == true || json['is_active'] == 1 || json['is_active'] == '1' || json['is_active'] == 'true',
+      createdAt: (json['created_at'] ?? json['createdAt'] ?? '').toString(),
+    );
+  }
+
+  DrishtiDoctor copyWith({
+    String? doctorId,
+    String? name,
+    String? email,
+    String? role,
+    String? phone,
+    String? dateOfBirth,
+    String? gender,
+    String? medicalRegistrationNumber,
+    String? specialization,
+    String? qualification,
+    int? yearsOfExperience,
+    String? hospitalClinic,
+    bool? isActive,
+    String? createdAt,
+  }) {
+    return DrishtiDoctor(
+      doctorId: doctorId ?? this.doctorId,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      role: role ?? this.role,
+      phone: phone ?? this.phone,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      gender: gender ?? this.gender,
+      medicalRegistrationNumber: medicalRegistrationNumber ?? this.medicalRegistrationNumber,
+      specialization: specialization ?? this.specialization,
+      qualification: qualification ?? this.qualification,
+      yearsOfExperience: yearsOfExperience ?? this.yearsOfExperience,
+      hospitalClinic: hospitalClinic ?? this.hospitalClinic,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -32,6 +96,16 @@ class DrishtiDoctor {
     'name': name,
     'email': email,
     'role': role,
+    'phone': phone,
+    'date_of_birth': dateOfBirth,
+    'gender': gender,
+    'medical_registration_number': medicalRegistrationNumber,
+    'specialization': specialization,
+    'qualification': qualification,
+    'years_of_experience': yearsOfExperience,
+    'hospital_clinic': hospitalClinic,
+    'is_active': isActive,
+    'created_at': createdAt,
   };
 }
 
@@ -75,6 +149,14 @@ class AuthService {
     _doctor = doctor;
     await prefs.setString(_tokenKey, token);
     await prefs.setString(_doctorKey, jsonEncode(doctor.toJson()));
+  }
+
+  Future<void> updateCurrentDoctor(DrishtiDoctor doctor) async {
+    _doctor = doctor;
+    final prefs = await SharedPreferences.getInstance();
+    if (_token != null && _token!.isNotEmpty) {
+      await prefs.setString(_doctorKey, jsonEncode(doctor.toJson()));
+    }
   }
 
   Future<void> logout() async {

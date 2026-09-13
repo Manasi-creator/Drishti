@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../services/api_service.dart';
+import '../../services/auth_service.dart';
+import '../landing/landing_screen.dart';
+import '../profile/doctor_profile_screen.dart';
 import '../screening/new_screening_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -83,6 +86,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildTopBar() {
+    final doctor = AuthService.instance.currentDoctor;
+    final displayName = (doctor?.name ?? '').trim();
+
     return Container(
       height: 75,
       padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -132,10 +138,74 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Refresh',
               ),
-              const CircleAvatar(radius: 19, child: Icon(Icons.person_outline)),
-              const Text(
-                'Doctor',
-                style: TextStyle(fontWeight: FontWeight.w600),
+              PopupMenuButton<String>(
+                offset: const Offset(0, 42),
+                onSelected: (value) async {
+                  if (value == 'profile') {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const DoctorProfileScreen(),
+                      ),
+                    );
+                    if (mounted) {
+                      setState(() {});
+                    }
+                  } else if (value == 'logout') {
+                    await AuthService.instance.logout();
+                    if (!mounted) return;
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (_) => const LandingScreen()),
+                      (route) => false,
+                    );
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircleAvatar(
+                        radius: 15,
+                        child: Icon(Icons.person_outline, size: 18),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        displayName.isEmpty ? 'Doctor' : displayName,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      const Icon(Icons.arrow_drop_down_rounded),
+                    ],
+                  ),
+                ),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'profile',
+                    child: const Row(
+                      children: [
+                        Icon(Icons.person_outline),
+                        SizedBox(width: 10),
+                        Text('Profile'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout_rounded),
+                        SizedBox(width: 10),
+                        Text('Log out'),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

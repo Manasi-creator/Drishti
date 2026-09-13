@@ -22,6 +22,7 @@ from backend.database import (
     get_screening,
     list_screenings,
     list_patient_screenings,
+    update_doctor_profile,
 )
 
 from backend.model_utils import run_inference
@@ -59,6 +60,25 @@ class LoginRequest(BaseModel):
     identifier: str
     password: str
     role: str = "doctor"
+
+
+class DoctorProfileUpdateRequest(BaseModel):
+    name: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    date_of_birth: str | None = None
+    gender: str | None = None
+    medical_registration_number: str | None = None
+    specialization: str | None = None
+    qualification: str | None = None
+    years_of_experience: int | str | None = None
+    hospital_clinic: str | None = None
+
+
+def serialize_doctor(doctor: dict):
+    return {
+        key: value for key, value in doctor.items() if key != "password_hash"
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -166,12 +186,7 @@ def login(request: LoginRequest):
     token = create_access_token(doctor["doctor_id"], doctor["role"])
     return {
         "authenticated": True,
-        "doctor": {
-            "doctor_id": doctor["doctor_id"],
-            "name": doctor["name"],
-            "email": doctor["email"],
-            "role": doctor["role"],
-        },
+        "doctor": serialize_doctor(doctor),
         "token": token,
     }
 
@@ -198,6 +213,77 @@ def get_authenticated_doctor(
         raise HTTPException(status_code=401, detail="Authentication required.")
 
     return doctor
+
+
+@app.get("/auth/me")
+def get_current_doctor(doctor: dict = Depends(get_authenticated_doctor)):
+    return {"doctor": serialize_doctor(doctor)}
+
+
+@app.put("/auth/me")
+def update_current_doctor(
+    payload: DoctorProfileUpdateRequest,
+    doctor: dict = Depends(get_authenticated_doctor),
+):
+    data = payload.model_dump(exclude_unset=True)
+    if not data:
+        return {"doctor": serialize_doctor(doctor), "message": "No profile changes submitted."}
+
+    trimmed = {}
+    for key, value in data.items():
+        if key in {"doctor_id", "id", "password_hash", "role", "is_active", "created_at", "medical_registration_number"}:
+            continue
+        if value is None:
+            continue
+        if isinstance(value, str):
+            value = value.strip()
+        trimmed[key] = value
+
+    if not trimmed:
+        return {"doctor": serialize_doctor(doctor), "message": "No profile changes submitted."}
+
+    required_fields = [
+        "name",
+        "email",
+        "phone",
+        "date_of_birth",
+        "gender",
+        "specialization",
+        "qualification",
+        "years_of_experience",
+        "hospital_clinic",
+    ]
+
+    for field in required_fields:
+        value = trimmed.get(field)
+        if value is None or (isinstance(value, str) and value == ""):
+            raise HTTPException(status_code=400, detail=f"{field.replace('_', ' ').title()} is required.")
+
+    email = str(trimmed["email"]).strip()
+    if "@" not in email or "." not in email:
+        raise HTTPException(status_code=400, detail="Email must be a valid email address.")
+
+    phone = str(trimmed["phone"]).strip()
+    if len(phone) < 7 or not any(ch.isdigit() for ch in phone):
+        raise HTTPException(status_code=400, detail="Phone number must be a valid number.")
+
+    years = trimmed["years_of_experience"]
+    try:
+        years_value = int(years)
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="Years of experience must be a non-negative number.")
+    if years_value < 0:
+        raise HTTPException(status_code=400, detail="Years of experience must be a non-negative number.")
+    trimmed["years_of_experience"] = years_value
+
+    updated_doctor = update_doctor_profile(doctor["doctor_id"], trimmed)
+    if updated_doctor is None:
+        raise HTTPException(status_code=404, detail="Doctor profile not found.")
+
+    return {
+        "doctor": serialize_doctor(updated_doctor),
+        "message": "Profile updated successfully.",
+    }
 
 
 # ---------------------------------------------------------------------------

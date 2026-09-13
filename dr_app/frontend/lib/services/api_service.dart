@@ -55,6 +55,60 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
+  static Future<Map<String, dynamic>> getCurrentDoctor() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/auth/me'),
+      headers: await _authHeaders(),
+    );
+
+    if (response.statusCode == 401) {
+      throw Exception('Your session has expired. Please sign in again.');
+    }
+    if (response.statusCode != 200) {
+      throw Exception('Unable to load your profile right now.');
+    }
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      throw Exception('Malformed doctor profile response.');
+    }
+    return decoded;
+  }
+
+  static Future<Map<String, dynamic>> updateCurrentDoctor(
+    Map<String, dynamic> profile,
+  ) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/auth/me'),
+      headers: {...await _authHeaders(), 'Content-Type': 'application/json'},
+      body: jsonEncode(profile),
+    );
+
+    if (response.statusCode == 401) {
+      throw Exception('Your session has expired. Please sign in again.');
+    }
+    if (response.statusCode == 400) {
+      final decoded = jsonDecode(response.body);
+      final detail = decoded is Map && decoded['detail'] != null
+          ? decoded['detail'].toString()
+          : 'Please correct the highlighted profile fields.';
+      throw Exception(detail);
+    }
+    if (response.statusCode != 200) {
+      final decoded = jsonDecode(response.body);
+      final detail = decoded is Map && decoded['detail'] != null
+          ? decoded['detail'].toString()
+          : 'Unable to update the profile at the moment.';
+      throw Exception(detail);
+    }
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      throw Exception('Malformed doctor update response.');
+    }
+    return decoded;
+  }
+
   static Future<Map<String, dynamic>> createPatient({
     required String name,
     String? dateOfBirth,

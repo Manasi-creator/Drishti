@@ -89,8 +89,6 @@ class _MainShellState extends State<MainShell> {
   }
 
   Widget _buildSidebar() {
-    final doctor = AuthService.instance.currentDoctor;
-
     return Container(
       width: 230,
       color: const Color(0xFF123B4A),
@@ -116,39 +114,6 @@ class _MainShellState extends State<MainShell> {
               color: Colors.white70,
               fontSize: 10,
               letterSpacing: 1,
-            ),
-          ),
-
-          const SizedBox(height: 24),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 12),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  doctor?.name ?? 'Doctor',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Doctor',
-                  style: TextStyle(color: Colors.white70, fontSize: 12),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  doctor?.doctorId ?? 'DOC-000',
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
-                ),
-              ],
             ),
           ),
 
