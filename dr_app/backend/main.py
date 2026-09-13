@@ -5,11 +5,15 @@ import uuid
 import cv2
 import numpy as np
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
+from backend.auth import create_access_token, decode_access_token, verify_password
 from backend.database import (
+    get_doctor_by_identifier,
     init_db,
     insert_patient,
     get_patient,
@@ -47,6 +51,14 @@ app = FastAPI(
     ),
     version="1.0.0",
 )
+
+security = HTTPBearer(auto_error=False)
+
+
+class LoginRequest(BaseModel):
+    identifier: str
+    password: str
+    role: str = "doctor"
 
 
 # ---------------------------------------------------------------------------
@@ -108,6 +120,86 @@ def health():
     }
 
 
+@app.post("/auth/login")
+def login(request: LoginRequest):
+    identifier = (request.identifier or "").strip()
+    password = request.password or ""
+    requested_role = (request.role or "").strip().lower()
+
+    if not identifier or not password:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid doctor ID/email or password.",
+        )
+
+    if requested_role != "doctor":
+        raise HTTPException(
+            status_code=401,
+            detail="Selected role is not authorized for this account.",
+        )
+
+    doctor = get_doctor_by_identifier(identifier)
+    if doctor is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid doctor ID/email or password.",
+        )
+
+    if doctor["role"].lower() != "doctor":
+        raise HTTPException(
+            status_code=401,
+            detail="Selected role is not authorized for this account.",
+        )
+
+    if doctor["is_active"] not in [1, True, "1"]:
+        raise HTTPException(
+            status_code=401,
+            detail="Your account is currently inactive.",
+        )
+
+    if not verify_password(password, doctor["password_hash"]):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid doctor ID/email or password.",
+        )
+
+    token = create_access_token(doctor["doctor_id"], doctor["role"])
+    return {
+        "authenticated": True,
+        "doctor": {
+            "doctor_id": doctor["doctor_id"],
+            "name": doctor["name"],
+            "email": doctor["email"],
+            "role": doctor["role"],
+        },
+        "token": token,
+    }
+
+
+def get_authenticated_doctor(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+):
+    if credentials is None or not credentials.credentials:
+        raise HTTPException(status_code=401, detail="Authentication required.")
+
+    try:
+        payload = decode_access_token(credentials.credentials)
+    except Exception as exc:  # pragma: no cover
+        raise HTTPException(status_code=401, detail="Authentication required.") from exc
+
+    doctor_id = payload.get("sub")
+    role = (payload.get("role") or "").lower()
+
+    if not doctor_id or role != "doctor":
+        raise HTTPException(status_code=401, detail="Authentication required.")
+
+    doctor = get_doctor_by_identifier(doctor_id)
+    if doctor is None or doctor["role"].lower() != "doctor":
+        raise HTTPException(status_code=401, detail="Authentication required.")
+
+    return doctor
+
+
 # ---------------------------------------------------------------------------
 # Patient APIs
 # ---------------------------------------------------------------------------
@@ -119,6 +211,7 @@ def create_patient(
     gender: str | None = Form(None),
     phone: str | None = Form(None),
     blood_group: str | None = Form(None),
+    doctor: dict = Depends(get_authenticated_doctor),
 ):
     """
     Create a new patient and generate a Drishti patient ID.
@@ -146,7 +239,10 @@ def create_patient(
 
 
 @app.get("/patients")
-def get_patients(limit: int = 100):
+def get_patients(
+    limit: int = 100,
+    doctor: dict = Depends(get_authenticated_doctor),
+):
     """
     Return the list of patients.
     """
@@ -166,7 +262,10 @@ def get_patients(limit: int = 100):
 
 
 @app.get("/patients/{patient_id}")
-def get_patient_details(patient_id: str):
+def get_patient_details(
+    patient_id: str,
+    doctor: dict = Depends(get_authenticated_doctor),
+):
     """
     Return one patient's profile.
     """
@@ -194,7 +293,11 @@ def get_patient_details(patient_id: str):
 
 
 @app.get("/patients/{patient_id}/screenings")
-def get_patient_screenings(patient_id: str, limit: int = 100):
+def get_patient_screenings(
+    patient_id: str,
+    limit: int = 100,
+    doctor: dict = Depends(get_authenticated_doctor),
+):
     """
     Return screening history for one patient.
     """
@@ -236,6 +339,7 @@ def get_patient_screenings(patient_id: str, limit: int = 100):
 async def analyze_screening(
     file: UploadFile = File(...),
     patient_id: str | None = Form(None),
+    doctor: dict = Depends(get_authenticated_doctor),
 ):
     """
     Upload a fundus image and perform AI-assisted DR screening.
@@ -418,6 +522,7 @@ async def analyze_screening(
 @app.get("/screening/{screening_id}")
 def get_screening_result(
     screening_id: int,
+    doctor: dict = Depends(get_authenticated_doctor),
 ):
 
     screening = get_screening(
@@ -445,6 +550,7 @@ def get_screening_result(
 @app.get("/screenings")
 def get_screenings(
     limit: int = 100,
+    doctor: dict = Depends(get_authenticated_doctor),
 ):
 
     if limit < 1 or limit > 500:

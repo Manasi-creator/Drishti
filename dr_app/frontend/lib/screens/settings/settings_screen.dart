@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../../core/api/api_constants.dart';
+import '../../services/auth_service.dart';
 import '../../services/settings_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -89,6 +90,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final settings = _settings.settings;
+    final doctor = AuthService.instance.currentDoctor;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -349,13 +351,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildSection(
                   title: 'Security & Session',
                   children: [
+                    _buildInfoRow(
+                      label: 'Signed in as',
+                      value: doctor?.name ?? 'Doctor',
+                    ),
+                    _buildInfoRow(
+                      label: 'Doctor ID',
+                      value: doctor?.doctorId ?? 'N/A',
+                    ),
+                    _buildInfoRow(
+                      label: 'Role',
+                      value: (doctor?.role ?? 'Doctor')
+                          .split('_')
+                          .map((part) =>
+                              part.isEmpty ? part : part[0].toUpperCase() + part.substring(1))
+                          .join(' '),
+                    ),
                     _buildInfoRow(label: 'Session', value: 'Active'),
                     _buildInfoRow(label: 'API Endpoint', value: _apiUrl),
-                    _buildInfoRow(
-                      label: 'Authentication',
-                      value:
-                          'Authentication is not configured in the current MVP.',
-                    ),
                   ],
                 ),
                 _buildSection(

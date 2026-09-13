@@ -4,9 +4,24 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 import '../core/api/api_constants.dart';
+import 'auth_service.dart';
 
 class ApiService {
   static final String baseUrl = ApiConstants.baseUrl;
+
+  static Future<Map<String, String>> _authHeaders({
+    Map<String, String>? extra,
+  }) async {
+    final headers = <String, String>{};
+    final token = AuthService.instance.accessToken;
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+    if (extra != null) {
+      headers.addAll(extra);
+    }
+    return headers;
+  }
 
   static Future<bool> checkHealth() async {
     final response = await http.get(Uri.parse('$baseUrl/health'));
@@ -14,7 +29,10 @@ class ApiService {
   }
 
   static Future<List<dynamic>> getPatients() async {
-    final response = await http.get(Uri.parse('$baseUrl/patients'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/patients'),
+      headers: await _authHeaders(),
+    );
 
     if (response.statusCode != 200) {
       throw Exception('Failed to load patients');
@@ -25,7 +43,10 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getPatient(String patientId) async {
-    final response = await http.get(Uri.parse('$baseUrl/patients/$patientId'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/patients/$patientId'),
+      headers: await _authHeaders(),
+    );
 
     if (response.statusCode != 200) {
       throw Exception('Failed to load patient');
@@ -45,6 +66,11 @@ class ApiService {
       'POST',
       Uri.parse('$baseUrl/patients'),
     );
+
+    final token = AuthService.instance.accessToken;
+    if (token != null && token.isNotEmpty) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
 
     request.fields['name'] = name;
     if (dateOfBirth != null && dateOfBirth.trim().isNotEmpty) {
@@ -77,6 +103,7 @@ class ApiService {
   static Future<List<dynamic>> getPatientScreenings(String patientId) async {
     final response = await http.get(
       Uri.parse('$baseUrl/patients/$patientId/screenings'),
+      headers: await _authHeaders(),
     );
 
     if (response.statusCode != 200) {
@@ -88,7 +115,10 @@ class ApiService {
   }
 
   static Future<List<dynamic>> getScreenings() async {
-    final response = await http.get(Uri.parse('$baseUrl/screenings'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/screenings'),
+      headers: await _authHeaders(),
+    );
 
     if (response.statusCode != 200) {
       throw Exception('Failed to load screenings');
@@ -101,6 +131,7 @@ class ApiService {
   static Future<Map<String, dynamic>> getScreening(int screeningId) async {
     final response = await http.get(
       Uri.parse('$baseUrl/screening/$screeningId'),
+      headers: await _authHeaders(),
     );
 
     if (response.statusCode != 200) {
@@ -130,6 +161,11 @@ class ApiService {
       'POST',
       Uri.parse('$baseUrl/screening/analyze'),
     );
+
+    final token = AuthService.instance.accessToken;
+    if (token != null && token.isNotEmpty) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
 
     request.fields['patient_id'] = patientId;
     request.files.add(

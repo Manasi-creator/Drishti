@@ -14,6 +14,8 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
+from backend.auth import hash_password
+
 
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = str(BASE_DIR / "screenings.db")
@@ -25,6 +27,18 @@ DB_PATH = str(BASE_DIR / "screenings.db")
 
 def init_db():
     with get_conn() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS doctors (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                doctor_id TEXT NOT NULL UNIQUE,
+                name TEXT NOT NULL,
+                email TEXT NOT NULL UNIQUE,
+                password_hash TEXT NOT NULL,
+                role TEXT NOT NULL DEFAULT 'doctor',
+                is_active INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT
+            )
+        """)
 
         # Patients
         conn.execute("""
@@ -59,6 +73,88 @@ def init_db():
         """)
 
         conn.commit()
+
+    seed_default_doctors()
+
+
+def seed_default_doctors():
+    default_doctors = [
+        {
+            "doctor_id": "DOC-001",
+            "name": "Dr. Ananya Sharma",
+            "email": "ananya.sharma@drishti.local",
+            "password": "Drishti@123",
+        },
+        {
+            "doctor_id": "DOC-002",
+            "name": "Dr. Rohan Mehta",
+            "email": "rohan.mehta@drishti.local",
+            "password": "Drishti@123",
+        },
+        {
+            "doctor_id": "DOC-003",
+            "name": "Dr. Priya Kulkarni",
+            "email": "priya.kulkarni@drishti.local",
+            "password": "Drishti@123",
+        },
+    ]
+
+    for doctor in default_doctors:
+        with get_conn() as conn:
+            existing = conn.execute(
+                "SELECT id FROM doctors WHERE doctor_id = ? OR email = ?",
+                (doctor["doctor_id"], doctor["email"]),
+            ).fetchone()
+
+            if existing is not None:
+                continue
+
+            conn.execute(
+                """
+                INSERT INTO doctors (
+                    doctor_id,
+                    name,
+                    email,
+                    password_hash,
+                    role,
+                    is_active,
+                    created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    doctor["doctor_id"],
+                    doctor["name"],
+                    doctor["email"],
+                    hash_password(doctor["password"]),
+                    "doctor",
+                    1,
+                    datetime.now(timezone.utc).isoformat(),
+                ),
+            )
+            conn.commit()
+
+
+def get_doctor_by_id(doctor_id: str):
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT * FROM doctors WHERE doctor_id = ?",
+            (doctor_id,),
+        ).fetchone()
+        return dict(row) if row else None
+
+
+def get_doctor_by_identifier(identifier: str):
+    with get_conn() as conn:
+        row = conn.execute(
+            """
+            SELECT *
+            FROM doctors
+            WHERE doctor_id = ? OR email = ?
+            LIMIT 1
+            """,
+            (identifier, identifier),
+        ).fetchone()
+        return dict(row) if row else None
 
 
 # ---------------------------------------------------------------------------

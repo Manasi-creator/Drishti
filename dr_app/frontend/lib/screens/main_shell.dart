@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../services/auth_service.dart';
 import 'dashboard/dashboard_screen.dart';
+import 'landing/landing_screen.dart';
 import 'patients/patients_screen.dart';
 import 'reports/reports_screen.dart';
 import 'screening/screenings_screen.dart';
@@ -24,10 +26,32 @@ class _MainShellState extends State<MainShell> {
     'Settings',
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!AuthService.instance.isAuthenticated) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LandingScreen()),
+          (route) => false,
+        );
+      }
+    });
+  }
+
   void changePage(int index) {
     setState(() {
       selectedIndex = index;
     });
+  }
+
+  Future<void> _signOut() async {
+    await AuthService.instance.logout();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LandingScreen()),
+      (route) => false,
+    );
   }
 
   Widget _buildContent() {
@@ -65,6 +89,8 @@ class _MainShellState extends State<MainShell> {
   }
 
   Widget _buildSidebar() {
+    final doctor = AuthService.instance.currentDoctor;
+
     return Container(
       width: 230,
       color: const Color(0xFF123B4A),
@@ -93,7 +119,40 @@ class _MainShellState extends State<MainShell> {
             ),
           ),
 
-          const SizedBox(height: 45),
+          const SizedBox(height: 24),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  doctor?.name ?? 'Doctor',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Doctor',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  doctor?.doctorId ?? 'DOC-000',
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 30),
 
           _sidebarItem(Icons.dashboard_outlined, 'Dashboard', 0),
 
@@ -106,6 +165,18 @@ class _MainShellState extends State<MainShell> {
           const Spacer(),
 
           _sidebarItem(Icons.settings_outlined, 'Settings', 4),
+
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: ListTile(
+              leading: const Icon(Icons.logout_rounded, color: Colors.white70),
+              title: const Text(
+                'Sign Out',
+                style: TextStyle(color: Colors.white70),
+              ),
+              onTap: _signOut,
+            ),
+          ),
 
           const SizedBox(height: 20),
         ],

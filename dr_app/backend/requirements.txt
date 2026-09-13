@@ -6,3 +6,6 @@ opencv-python
 Pillow
 torch
 torchvision
+PyJWT
+passlib
+bcrypt==4.0.1
