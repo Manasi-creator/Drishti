@@ -439,11 +439,18 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
       return 'Unspecified';
     }
     final lower = label.toLowerCase();
-    if (lower.contains('l0') || lower.contains('no dr')) return 'L0 — No DR';
-    if (lower.contains('l1') || lower.contains('mild')) return 'L1 — Mild';
-    if (lower.contains('l2') || lower.contains('moderate'))
+    if (lower.contains('l0') || lower.contains('no dr')) {
+      return 'L0 — No DR';
+    }
+    if (lower.contains('l1') || lower.contains('mild')) {
+      return 'L1 — Mild';
+    }
+    if (lower.contains('l2') || lower.contains('moderate')) {
       return 'L2 — Moderate';
-    if (lower.contains('l3') || lower.contains('severe')) return 'L3 — Severe';
+    }
+    if (lower.contains('l3') || lower.contains('severe')) {
+      return 'L3 — Severe';
+    }
     if (lower.contains('l4') || lower.contains('proliferative')) {
       return 'L4 — Proliferative DR';
     }
@@ -549,6 +556,25 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        titleSpacing: 0,
+        title: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.arrow_back_rounded),
+              ),
+              const SizedBox(width: 6),
+              const Text('Back to Screenings'),
+            ],
+          ),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(30),
