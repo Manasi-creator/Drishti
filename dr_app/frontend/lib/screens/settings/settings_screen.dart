@@ -363,8 +363,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       label: 'Role',
                       value: (doctor?.role ?? 'Doctor')
                           .split('_')
-                          .map((part) =>
-                              part.isEmpty ? part : part[0].toUpperCase() + part.substring(1))
+                          .map(
+                            (part) => part.isEmpty
+                                ? part
+                                : part[0].toUpperCase() + part.substring(1),
+                          )
                           .join(' '),
                     ),
                     _buildInfoRow(label: 'Session', value: 'Active'),

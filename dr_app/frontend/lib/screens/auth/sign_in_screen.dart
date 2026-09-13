@@ -60,7 +60,8 @@ class _SignInScreenState extends State<SignInScreen> {
       setState(() {
         _error = error.toString().replaceFirst('Exception: ', '').trim();
         if (_error == null || _error!.isEmpty) {
-          _error = 'Unable to connect to the Drishti backend. Please check that the backend server is running.';
+          _error =
+              'Unable to connect to the Drishti backend. Please check that the backend server is running.';
         }
       });
     } finally {
@@ -89,12 +90,12 @@ class _SignInScreenState extends State<SignInScreen> {
                   (route) => false,
                 );
               },
-              icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF123B4A)),
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: Color(0xFF123B4A),
+              ),
             ),
-            const Text(
-              'Back',
-              style: TextStyle(color: Color(0xFF123B4A)),
-            ),
+            const Text('Back', style: TextStyle(color: Color(0xFF123B4A))),
           ],
         ),
       ),
@@ -179,7 +180,10 @@ class _SignInScreenState extends State<SignInScreen> {
                         border: OutlineInputBorder(),
                       ),
                       items: const [
-                        DropdownMenuItem(value: 'doctor', child: Text('Doctor')),
+                        DropdownMenuItem(
+                          value: 'doctor',
+                          child: Text('Doctor'),
+                        ),
                       ],
                       onChanged: null,
                     ),

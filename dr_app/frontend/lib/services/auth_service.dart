@@ -45,14 +45,26 @@ class DrishtiDoctor {
       email: (json['email'] ?? '').toString(),
       role: (json['role'] ?? 'doctor').toString(),
       phone: (json['phone'] ?? '').toString(),
-      dateOfBirth: (json['date_of_birth'] ?? json['dateOfBirth'] ?? '').toString(),
+      dateOfBirth: (json['date_of_birth'] ?? json['dateOfBirth'] ?? '')
+          .toString(),
       gender: (json['gender'] ?? '').toString(),
-      medicalRegistrationNumber: (json['medical_registration_number'] ?? '').toString(),
+      medicalRegistrationNumber: (json['medical_registration_number'] ?? '')
+          .toString(),
       specialization: (json['specialization'] ?? '').toString(),
       qualification: (json['qualification'] ?? '').toString(),
-      yearsOfExperience: int.tryParse((json['years_of_experience'] ?? json['yearsOfExperience'] ?? '0').toString()) ?? 0,
-      hospitalClinic: (json['hospital_clinic'] ?? json['hospitalClinic'] ?? '').toString(),
-      isActive: json['is_active'] == true || json['is_active'] == 1 || json['is_active'] == '1' || json['is_active'] == 'true',
+      yearsOfExperience:
+          int.tryParse(
+            (json['years_of_experience'] ?? json['yearsOfExperience'] ?? '0')
+                .toString(),
+          ) ??
+          0,
+      hospitalClinic: (json['hospital_clinic'] ?? json['hospitalClinic'] ?? '')
+          .toString(),
+      isActive:
+          json['is_active'] == true ||
+          json['is_active'] == 1 ||
+          json['is_active'] == '1' ||
+          json['is_active'] == 'true',
       createdAt: (json['created_at'] ?? json['createdAt'] ?? '').toString(),
     );
   }
@@ -81,7 +93,8 @@ class DrishtiDoctor {
       phone: phone ?? this.phone,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       gender: gender ?? this.gender,
-      medicalRegistrationNumber: medicalRegistrationNumber ?? this.medicalRegistrationNumber,
+      medicalRegistrationNumber:
+          medicalRegistrationNumber ?? this.medicalRegistrationNumber,
       specialization: specialization ?? this.specialization,
       qualification: qualification ?? this.qualification,
       yearsOfExperience: yearsOfExperience ?? this.yearsOfExperience,
@@ -196,7 +209,9 @@ class AuthService {
     final token = decoded['token']?.toString() ?? '';
 
     if (token.isEmpty) {
-      throw const FormatException('Authentication token missing from the backend response.');
+      throw const FormatException(
+        'Authentication token missing from the backend response.',
+      );
     }
 
     await persistSession(token, doctor);
