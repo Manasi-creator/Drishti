@@ -121,7 +121,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF176B87),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 14,
+                  ),
                 ),
               ),
               IconButton(
@@ -130,7 +133,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 tooltip: 'Refresh',
               ),
               const CircleAvatar(radius: 19, child: Icon(Icons.person_outline)),
-              const Text('Doctor', style: TextStyle(fontWeight: FontWeight.w600)),
+              const Text(
+                'Doctor',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
             ],
           ),
         ],

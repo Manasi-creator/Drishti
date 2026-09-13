@@ -37,7 +37,8 @@ class NewScreeningScreen extends StatefulWidget {
 }
 
 class _NewScreeningScreenState extends State<NewScreeningScreen> {
-  final TextEditingController _patientSearchController = TextEditingController();
+  final TextEditingController _patientSearchController =
+      TextEditingController();
   final TextEditingController _patientNameController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -126,9 +127,7 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
 
   Future<void> _pickFundusImage() async {
     try {
-      final result = await FilePicker.pickFile(
-        type: FileType.image,
-      );
+      final result = await FilePicker.pickFile(type: FileType.image);
 
       if (result == null) {
         return;
@@ -161,7 +160,10 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
       });
     } catch (error) {
       setState(() {
-        _screeningError = _formatException(error, 'Unable to access the selected image.');
+        _screeningError = _formatException(
+          error,
+          'Unable to access the selected image.',
+        );
       });
     }
   }
@@ -439,7 +441,8 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
     final lower = label.toLowerCase();
     if (lower.contains('l0') || lower.contains('no dr')) return 'L0 — No DR';
     if (lower.contains('l1') || lower.contains('mild')) return 'L1 — Mild';
-    if (lower.contains('l2') || lower.contains('moderate')) return 'L2 — Moderate';
+    if (lower.contains('l2') || lower.contains('moderate'))
+      return 'L2 — Moderate';
     if (lower.contains('l3') || lower.contains('severe')) return 'L3 — Severe';
     if (lower.contains('l4') || lower.contains('proliferative')) {
       return 'L4 — Proliferative DR';
@@ -449,7 +452,9 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
 
   bool _isReferable(Map<String, dynamic> result) {
     final prediction = result['prediction'];
-    final referable = prediction is Map ? prediction['referable'] : result['referable'];
+    final referable = prediction is Map
+        ? prediction['referable']
+        : result['referable'];
     final normalized = parseBooleanFlag(referable);
     if (normalized) {
       return true;
@@ -492,16 +497,22 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
     return <String, dynamic>{};
   }
 
-  List<MapEntry<String, double>> _buildProbabilityEntries(Map<String, dynamic> result) {
+  List<MapEntry<String, double>> _buildProbabilityEntries(
+    Map<String, dynamic> result,
+  ) {
     final prediction = result['prediction'];
     final map = prediction is Map
-        ? Map<String, dynamic>.from(prediction['class_probabilities'] is Map
-            ? prediction['class_probabilities'] as Map
-            : {})
+        ? Map<String, dynamic>.from(
+            prediction['class_probabilities'] is Map
+                ? prediction['class_probabilities'] as Map
+                : {},
+          )
         : <String, dynamic>{};
 
     final probabilities = _normalizeProbabilities(
-      prediction is Map ? prediction['class_probabilities'] : result['class_probabilities'],
+      prediction is Map
+          ? prediction['class_probabilities']
+          : result['class_probabilities'],
     );
 
     final orderedLabels = ['L0', 'L1', 'L2', 'L3', 'L4'];
@@ -571,13 +582,16 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
                         controller: _patientSearchController,
                         onChanged: (_) => _applyPatientFilter(),
                         decoration: InputDecoration(
-                          hintText: 'Search existing patient by name or patient ID',
+                          hintText:
+                              'Search existing patient by name or patient ID',
                           prefixIcon: const Icon(Icons.search_outlined),
                           filled: true,
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE5E7EB),
+                            ),
                           ),
                         ),
                       ),
@@ -635,10 +649,22 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
                                   ),
                                   initialValue: _qualificationGender,
                                   items: const [
-                                    DropdownMenuItem(value: 'Male', child: Text('Male')),
-                                    DropdownMenuItem(value: 'Female', child: Text('Female')),
-                                    DropdownMenuItem(value: 'Other', child: Text('Other')),
-                                    DropdownMenuItem(value: 'Prefer not to say', child: Text('Prefer not to say')),
+                                    DropdownMenuItem(
+                                      value: 'Male',
+                                      child: Text('Male'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'Female',
+                                      child: Text('Female'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'Other',
+                                      child: Text('Other'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'Prefer not to say',
+                                      child: Text('Prefer not to say'),
+                                    ),
                                   ],
                                   onChanged: (value) {
                                     setState(() {
@@ -661,14 +687,38 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
                                   ),
                                   initialValue: _qualificationBloodGroup,
                                   items: const [
-                                    DropdownMenuItem(value: 'A+', child: Text('A+')),
-                                    DropdownMenuItem(value: 'A-', child: Text('A-')),
-                                    DropdownMenuItem(value: 'B+', child: Text('B+')),
-                                    DropdownMenuItem(value: 'B-', child: Text('B-')),
-                                    DropdownMenuItem(value: 'AB+', child: Text('AB+')),
-                                    DropdownMenuItem(value: 'AB-', child: Text('AB-')),
-                                    DropdownMenuItem(value: 'O+', child: Text('O+')),
-                                    DropdownMenuItem(value: 'O-', child: Text('O-')),
+                                    DropdownMenuItem(
+                                      value: 'A+',
+                                      child: Text('A+'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'A-',
+                                      child: Text('A-'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'B+',
+                                      child: Text('B+'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'B-',
+                                      child: Text('B-'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'AB+',
+                                      child: Text('AB+'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'AB-',
+                                      child: Text('AB-'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'O+',
+                                      child: Text('O+'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'O-',
+                                      child: Text('O-'),
+                                    ),
                                   ],
                                   onChanged: (value) {
                                     setState(() {
@@ -680,12 +730,16 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
                                 SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
-                                    onPressed: _creatingPatient ? null : _createPatient,
+                                    onPressed: _creatingPatient
+                                        ? null
+                                        : _createPatient,
                                     child: _creatingPatient
                                         ? const SizedBox(
                                             height: 20,
                                             width: 20,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
                                           )
                                         : const Text('Save Patient'),
                                   ),
@@ -717,7 +771,8 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
                             itemBuilder: (context, index) {
                               final patient = _filteredPatients[index];
                               final isSelected =
-                                  _selectedPatient?['patient_id'] == patient['patient_id'];
+                                  _selectedPatient?['patient_id'] ==
+                                  patient['patient_id'];
                               return Material(
                                 color: isSelected
                                     ? const Color(0xFFE8F4F7)
@@ -727,7 +782,8 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
                                   borderRadius: BorderRadius.circular(10),
                                   onTap: () {
                                     setState(() {
-                                      _selectedPatient = Map<String, dynamic>.from(patient);
+                                      _selectedPatient =
+                                          Map<String, dynamic>.from(patient);
                                     });
                                   },
                                   child: Padding(
@@ -736,16 +792,23 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
                                       children: [
                                         CircleAvatar(
                                           radius: 18,
-                                          backgroundColor: const Color(0xFF176B87),
+                                          backgroundColor: const Color(
+                                            0xFF176B87,
+                                          ),
                                           child: Text(
-                                            (patient['name'] ?? 'P').toString()[0].toUpperCase(),
-                                            style: const TextStyle(color: Colors.white),
+                                            (patient['name'] ?? 'P')
+                                                .toString()[0]
+                                                .toUpperCase(),
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                            ),
                                           ),
                                         ),
                                         const SizedBox(width: 12),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 _safeText(patient['name']),
@@ -757,20 +820,26 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
                                               const SizedBox(height: 2),
                                               Text(
                                                 'ID: ${_safeText(patient['patient_id'])}',
-                                                style: const TextStyle(color: Colors.grey),
+                                                style: const TextStyle(
+                                                  color: Colors.grey,
+                                                ),
                                               ),
                                             ],
                                           ),
                                         ),
                                         if (isSelected)
-                                          const Icon(Icons.check_circle, color: Color(0xFF176B87)),
+                                          const Icon(
+                                            Icons.check_circle,
+                                            color: Color(0xFF176B87),
+                                          ),
                                       ],
                                     ),
                                   ),
                                 ),
                               );
                             },
-                            separatorBuilder: (context, index) => const SizedBox(height: 6),
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 6),
                           ),
                         ),
                       const SizedBox(height: 18),
@@ -825,7 +894,11 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
                               ? Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: const [
-                                    Icon(Icons.upload_file_outlined, size: 42, color: Color(0xFF176B87)),
+                                    Icon(
+                                      Icons.upload_file_outlined,
+                                      size: 42,
+                                      color: Color(0xFF176B87),
+                                    ),
                                     SizedBox(height: 12),
                                     Text(
                                       'Upload Fundus Image',
@@ -869,7 +942,9 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
                               child: Text(
                                 _selectedImageName ?? 'Selected image',
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontWeight: FontWeight.w500),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                             TextButton.icon(
@@ -922,7 +997,9 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
                           )
                         : const Icon(Icons.auto_awesome_outlined),
                     label: Text(
-                      _isAnalyzing ? 'Analyzing retinal image...' : 'Analyze Screening',
+                      _isAnalyzing
+                          ? 'Analyzing retinal image...'
+                          : 'Analyze Screening',
                     ),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -991,7 +1068,9 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
 
   Widget _buildResultPanel() {
     final result = _analysisResult ?? {};
-    final prediction = result['prediction'] is Map ? Map<String, dynamic>.from(result['prediction'] as Map) : <String, dynamic>{};
+    final prediction = result['prediction'] is Map
+        ? Map<String, dynamic>.from(result['prediction'] as Map)
+        : <String, dynamic>{};
     final label = _normalizeGradeLabel(
       prediction['label'] ?? result['dr_grade_label'] ?? result['grade_label'],
     );
@@ -999,18 +1078,24 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
       prediction['confidence'] ?? result['confidence'],
     );
     final referable = _isReferable(result) ? 'Referable' : 'Non-referable';
-    final quality = (parseBooleanFlag(result['quality_acceptable']) ||
-            (result['quality'] is Map && parseBooleanFlag(result['quality']['acceptable'])))
+    final quality =
+        (parseBooleanFlag(result['quality_acceptable']) ||
+            (result['quality'] is Map &&
+                parseBooleanFlag(result['quality']['acceptable'])))
         ? 'Acceptable'
         : 'Acceptable';
 
     final originalImage = _getImageUrl(
       (result['files'] is Map ? result['files']['original_image'] : null) ??
-          result['stored_filename'] == null ? null : '/uploads/${result['stored_filename']}',
+              result['stored_filename'] == null
+          ? null
+          : '/uploads/${result['stored_filename']}',
     );
     final heatmapImage = _getImageUrl(
       (result['files'] is Map ? result['files']['heatmap'] : null) ??
-          result['heatmap_filename'] == null ? null : '/heatmaps/${result['heatmap_filename']}',
+              result['heatmap_filename'] == null
+          ? null
+          : '/heatmaps/${result['heatmap_filename']}',
     );
 
     final screeningId = result['screening_id'];
@@ -1041,19 +1126,35 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: _resultStatCard('DR Grade', label, Icons.remove_red_eye_outlined),
+                child: _resultStatCard(
+                  'DR Grade',
+                  label,
+                  Icons.remove_red_eye_outlined,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: _resultStatCard('Confidence', confidence, Icons.percent_outlined),
+                child: _resultStatCard(
+                  'Confidence',
+                  confidence,
+                  Icons.percent_outlined,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: _resultStatCard('Referral Status', referable, Icons.warning_amber_rounded),
+                child: _resultStatCard(
+                  'Referral Status',
+                  referable,
+                  Icons.warning_amber_rounded,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: _resultStatCard('Image Quality', quality, Icons.check_circle_outline),
+                child: _resultStatCard(
+                  'Image Quality',
+                  quality,
+                  Icons.check_circle_outline,
+                ),
               ),
             ],
           ),
@@ -1081,7 +1182,10 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
                       children: [
                         const Text(
                           'Original Fundus Image',
-                          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         ClipRRect(
@@ -1091,10 +1195,13 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
                             fit: BoxFit.cover,
                             width: double.infinity,
                             height: 220,
-                            errorBuilder: (context, error, stackTrace) => const SizedBox(
-                              height: 220,
-                              child: Center(child: Text('Image unavailable')),
-                            ),
+                            errorBuilder: (context, error, stackTrace) =>
+                                const SizedBox(
+                                  height: 220,
+                                  child: Center(
+                                    child: Text('Image unavailable'),
+                                  ),
+                                ),
                           ),
                         ),
                       ],
@@ -1108,12 +1215,18 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
                       children: [
                         const Text(
                           'AI Attention Map',
-                          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'AI attention map — highlights retinal regions that contributed most to the model\'s prediction.',
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         ClipRRect(
@@ -1123,10 +1236,13 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
                             fit: BoxFit.cover,
                             width: double.infinity,
                             height: 220,
-                            errorBuilder: (context, error, stackTrace) => const SizedBox(
-                              height: 220,
-                              child: Center(child: Text('Heatmap unavailable')),
-                            ),
+                            errorBuilder: (context, error, stackTrace) =>
+                                const SizedBox(
+                                  height: 220,
+                                  child: Center(
+                                    child: Text('Heatmap unavailable'),
+                                  ),
+                                ),
                           ),
                         ),
                       ],
@@ -1180,7 +1296,8 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => ReportDetailScreen(
-                          screeningId: int.tryParse(screeningId.toString()) ?? 0,
+                          screeningId:
+                              int.tryParse(screeningId.toString()) ?? 0,
                         ),
                       ),
                     );
@@ -1240,7 +1357,10 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
                 const SizedBox(height: 4),
                 Text(
                   value,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
@@ -1264,10 +1384,7 @@ class _NewScreeningScreenState extends State<NewScreeningScreen> {
     );
   }
 
-  Widget _buildSectionCard({
-    required String title,
-    required Widget child,
-  }) {
+  Widget _buildSectionCard({required String title, required Widget child}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
