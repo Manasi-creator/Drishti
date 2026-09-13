@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../services/api_service.dart';
+import 'new_screening_screen.dart';
 import 'screening_detail_screen.dart';
 
 class ScreeningsScreen extends StatefulWidget {
@@ -243,6 +244,22 @@ class _ScreeningsScreenState extends State<ScreeningsScreen> {
                       ),
                     ),
                   ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const NewScreeningScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.add_circle_outline),
+                label: const Text('New Screening'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF176B87),
+                  foregroundColor: Colors.white,
                 ),
               ),
             ],

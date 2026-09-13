@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../services/api_service.dart';
+import '../screening/new_screening_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -90,30 +92,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       child: Row(
         children: [
-          const Text(
-            'Dashboard',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF17202A),
+          const Expanded(
+            child: Text(
+              'Dashboard',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF17202A),
+              ),
             ),
           ),
-
-          const Spacer(),
-
-          IconButton(
-            onPressed: loadDashboard,
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 8,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const NewScreeningScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.add_circle_outline),
+                label: const Text('New Screening'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF176B87),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                ),
+              ),
+              IconButton(
+                onPressed: loadDashboard,
+                icon: const Icon(Icons.refresh),
+                tooltip: 'Refresh',
+              ),
+              const CircleAvatar(radius: 19, child: Icon(Icons.person_outline)),
+              const Text('Doctor', style: TextStyle(fontWeight: FontWeight.w600)),
+            ],
           ),
-
-          const SizedBox(width: 10),
-
-          const CircleAvatar(radius: 19, child: Icon(Icons.person_outline)),
-
-          const SizedBox(width: 10),
-
-          const Text('Doctor', style: TextStyle(fontWeight: FontWeight.w600)),
         ],
       ),
     );
